@@ -55,13 +55,13 @@ func cryptoString(t TestingAny) func(string, *crypto.AesECB) {
 
 		decrypted, err := c.DecryptFromHex(toHex)
 		noError(t, err)
-		equal(t, s, decrypted)
+		equalString(t, s, decrypted)
 
 		toBase64 := c.EncryptToBase64(s)
 
 		decrypted, err = c.DecryptFromBase64(toBase64)
 		noError(t, err)
-		equal(t, s, decrypted)
+		equalString(t, s, decrypted)
 	}
 }
 

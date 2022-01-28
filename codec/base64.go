@@ -1,7 +1,7 @@
 package codec
 
 import (
-"encoding/base64"
+	"encoding/base64"
 )
 
 // Base64EncodeToString encode base64 to string

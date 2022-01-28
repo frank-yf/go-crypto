@@ -19,8 +19,8 @@ func TestMD5(t *testing.T) {
 
 	sum := hash.Sum(nil)
 
-	equal(t, sum, crypto.MD5(bs))
-	equal(t, sum, crypto.MD5(bs))
+	equalBytes(t, sum, crypto.MD5(bs))
+	equalBytes(t, sum, crypto.MD5(bs))
 }
 
 func TestMD5HexToString(t *testing.T) {
@@ -32,8 +32,8 @@ func TestMD5HexToString(t *testing.T) {
 
 	sum := fmt.Sprintf("%x", hash.Sum(nil))
 
-	equal(t, sum, crypto.MD5HexToString(s))
-	equal(t, sum, crypto.MD5HexToString(s))
+	equalString(t, sum, crypto.MD5HexToString(s))
+	equalString(t, sum, crypto.MD5HexToString(s))
 }
 
 func BenchmarkMD5(b *testing.B) {
