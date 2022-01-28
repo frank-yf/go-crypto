@@ -1,15 +1,15 @@
 package crypto
 
-type EncryptEncoder func([]byte) string
+type StringEncoder func([]byte) string
 
-type DecryptDecoder func(string) ([]byte, error)
+type StringDecoder func(string) ([]byte, error)
 
 type Crypto interface {
 	Encrypt([]byte) []byte
 
-	EncryptTo(string, EncryptEncoder) string
+	EncryptTo(string, StringEncoder) string
 
 	Decrypt([]byte) []byte
 
-	DecryptFrom(string, DecryptDecoder) (string, error)
+	DecryptFrom(string, StringDecoder) (string, error)
 }

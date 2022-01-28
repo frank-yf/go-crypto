@@ -3,8 +3,9 @@ package crypto
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/hex"
 	"sync"
+
+	"github.com/frank-yf/go-crypto/codec"
 )
 
 var (
@@ -20,7 +21,7 @@ type AesECB struct {
 }
 
 func NewAesECB(key string, opts ...AesECBOptions) (c *AesECB, err error) {
-	genKey := generateKey(StringToBytes(key))
+	genKey := generateKey(codec.StringToBytes(key))
 	ci, err := aes.NewCipher(genKey)
 	if err != nil {
 		return
@@ -70,9 +71,9 @@ func (c *AesECB) makeBytes(length int, oneOff bool) ([]byte, func()) {
 	return mb, func() { c.pool.Put(&mb) }
 }
 
-func (c *AesECB) Encrypt(origin []byte) (encrypted []byte) {
+func (c *AesECB) Encrypt(data []byte) (encrypted []byte) {
 	blockSize := c.ci.BlockSize()
-	plain := c.paddingPKCS7(origin, blockSize)
+	plain := c.paddingPKCS7(data, blockSize)
 
 	encrypted, _ = c.makeBytes(len(plain), true) // 不能返回一个被复用的字节数组
 
@@ -82,8 +83,8 @@ func (c *AesECB) Encrypt(origin []byte) (encrypted []byte) {
 	return
 }
 
-func (c *AesECB) EncryptTo(origin string, encoder EncryptEncoder) string {
-	originBytes := StringToBytes(origin)
+func (c *AesECB) EncryptTo(data string, encoder StringEncoder) string {
+	originBytes := codec.StringToBytes(data)
 
 	blockSize := c.ci.BlockSize()
 	plain := c.paddingPKCS7(originBytes, blockSize)
@@ -97,12 +98,12 @@ func (c *AesECB) EncryptTo(origin string, encoder EncryptEncoder) string {
 	return encoder(encrypted)
 }
 
-func (c *AesECB) EncryptToHex(origin string) string {
-	return c.EncryptTo(origin, noCopyHexEncode)
+func (c *AesECB) EncryptToHex(data string) string {
+	return c.EncryptTo(data, codec.HexEncodeToString)
 }
 
-func (c *AesECB) EncryptToBase64(origin string) string {
-	return c.EncryptTo(origin, noCopyBase64Encode)
+func (c *AesECB) EncryptToBase64(data string) string {
+	return c.EncryptTo(data, codec.Base64EncodeToString)
 }
 
 func (c *AesECB) Decrypt(encrypted []byte) []byte {
@@ -116,7 +117,7 @@ func (c *AesECB) Decrypt(encrypted []byte) []byte {
 	return c.unPaddingPKCS7(decrypted)
 }
 
-func (c *AesECB) DecryptFrom(encrypted string, decoder DecryptDecoder) (decrypted string, err error) {
+func (c *AesECB) DecryptFrom(encrypted string, decoder StringDecoder) (decrypted string, err error) {
 	encryptedBytes, err := decoder(encrypted)
 	if err != nil {
 		return
@@ -131,7 +132,7 @@ func (c *AesECB) DecryptFrom(encrypted string, decoder DecryptDecoder) (decrypte
 	}
 
 	copy(encryptedBytes, decryptedBytes)
-	decrypted = BytesToString(c.unPaddingPKCS7(encryptedBytes))
+	decrypted = codec.BytesToString(c.unPaddingPKCS7(encryptedBytes))
 	return
 }
 
@@ -154,12 +155,9 @@ func (c *AesECB) unPaddingPKCS7(pad []byte) []byte {
 }
 
 func (c *AesECB) DecryptFromHex(encrypted string) (decrypted string, err error) {
-	// 解码只新建了一个字节数组，没有优化空间
-	from := hex.DecodeString
-	return c.DecryptFrom(encrypted, from)
+	return c.DecryptFrom(encrypted, codec.HexDecodeFromString)
 }
 
 func (c *AesECB) DecryptFromBase64(encrypted string) (decrypted string, err error) {
-	from := noCopyBase64Decode
-	return c.DecryptFrom(encrypted, from)
+	return c.DecryptFrom(encrypted, codec.Base64DecodeFromString)
 }
